@@ -12,6 +12,7 @@ import "./custom.css";
 
 const settings = {
   infinite: false,
+  lazyLoad: false,
   speed: 500,
   slidesToShow: 3,
   slidesToScroll: 1,
@@ -45,36 +46,35 @@ const settings = {
 function CustomSlider() {
   const sRef = useRef();
   const dispatch = useDispatch();
-  const { dailyForecastData } = useSelector(
-    (state) => state.weather,
-    (prev, curr) => {
-      if (prev.dailyForecastData !== curr.dailyForecastData) return false;
-      return true;
-    }
-  );
+  const { dailyForecastData } = useSelector((state) => state.weather);
 
   useEffect(() => {
     dispatch(fetchWeatherData());
   }, [dispatch]);
 
   useEffect(() => {
-    sRef.current.slickGoTo(0);
-  });
+    sRef.current && sRef.current.slickGoTo(0);
+  }, [dailyForecastData]);
 
   return (
     <div className="w-full bg-gray-200 lg:p-10 pb-0">
-      <Slider
-        {...settings}
-        className="pt-20"
-        nextArrow={<Arrow isNext />}
-        prevArrow={<Arrow />}
-        ref={(c) => (sRef.current = c)}
-      >
-        {dailyForecastData &&
-          Object.keys(dailyForecastData)
+      {Object.keys(dailyForecastData).length > 0 && (
+        <Slider
+          {...settings}
+          className="pt-20"
+          nextArrow={<Arrow isNext />}
+          prevArrow={<Arrow />}
+          ref={(c) => (sRef.current = c)}
+        >
+          {Object.keys(dailyForecastData)
             .slice(0, 5)
-            .map((data) => <Card key={data} data={dailyForecastData[data]} />)}
-      </Slider>
+            .map((data) => (
+              <div key={data}>
+                <Card data={dailyForecastData[data]} />
+              </div>
+            ))}
+        </Slider>
+      )}
     </div>
   );
 }
